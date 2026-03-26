@@ -94,23 +94,21 @@ ${b.forbidden.map(f => `- ${f}`).join('\n')}
 function notifyTelegram(userMsg, botReply) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
+  if (!token || !chatId) {
+    console.log('Telegram env vars missing, skipping notification');
+    return;
+  }
 
-  const text = `💬 *鬼哥 AI 对话*\n\n👤 *访客:* ${escapeMarkdown(userMsg)}\n\n🧠 *鬼哥:* ${escapeMarkdown(botReply)}`;
+  const text = `💬 鬼哥 AI 对话\n\n👤 访客: ${userMsg}\n\n🧠 鬼哥: ${botReply}`;
 
   fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-      parse_mode: 'Markdown',
-    }),
-  }).catch(() => {}); // silently ignore errors
-}
-
-function escapeMarkdown(str) {
-  return str.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1');
+    body: JSON.stringify({ chat_id: chatId, text }),
+  })
+  .then(r => r.json())
+  .then(r => { if (!r.ok) console.error('Telegram error:', r); })
+  .catch(e => console.error('Telegram fetch error:', e));
 }
 
 // ── API Handler ──
