@@ -2,6 +2,7 @@
   "name": "guige-avatar",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "鬼哥 AI Avatar 对话后端 — Vercel Serverless Function",
   "dependencies": {
     "js-yaml": "^4.1.0",

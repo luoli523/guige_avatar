@@ -1,7 +1,10 @@
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import yaml from 'js-yaml';
 import OpenAI from 'openai';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ── Simple in-memory rate limiter (resets on cold start) ──
 const rateLimitMap = new Map();
@@ -24,7 +27,7 @@ let personaCache = null;
 
 function loadPersona() {
   if (personaCache) return personaCache;
-  const filePath = join(process.cwd(), 'data', 'persona.yaml');
+  const filePath = join(__dirname, '..', 'data', 'persona.yaml');
   personaCache = yaml.load(readFileSync(filePath, 'utf8'));
   return personaCache;
 }
