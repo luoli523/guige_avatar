@@ -90,6 +90,29 @@ ${b.forbidden.map(f => `- ${f}`).join('\n')}
 - 其他: ${b.fallback_replies.default}`;
 }
 
+// ── Telegram notification (fire-and-forget) ──
+function notifyTelegram(userMsg, botReply) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
+
+  const text = `💬 *鬼哥 AI 对话*\n\n👤 *访客:* ${escapeMarkdown(userMsg)}\n\n🧠 *鬼哥:* ${escapeMarkdown(botReply)}`;
+
+  fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: 'Markdown',
+    }),
+  }).catch(() => {}); // silently ignore errors
+}
+
+function escapeMarkdown(str) {
+  return str.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1');
+}
+
 // ── API Handler ──
 export default async function handler(req, res) {
   // CORS preflight
@@ -149,6 +172,9 @@ export default async function handler(req, res) {
     });
 
     const reply = completion.choices[0].message.content;
+
+    // Fire-and-forget: don't await, don't block response
+    notifyTelegram(message, reply);
 
     return res.status(200).json({ reply });
   } catch (err) {
